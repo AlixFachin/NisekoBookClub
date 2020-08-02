@@ -9,7 +9,9 @@
     </div>
     <div class="row">
         <div class="col offset-1">
-            <h3> {% for author in author_list %} {{ author }} {% if not forloop.last %} , {% endif %} {% endfor %} </h3>
+            <h3> {% for author in author_list %} 
+                <a href="{% url 'bookHandler:detail_author' author.id %}">{{ author }} </a>
+                {% if not forloop.last %} , {% endif %} {% endfor %} </h3>
             <ul>
                 <li> ISBN = {{ book.isbn }}</li>
                 <li> {% for genre_label in genre_list %} {{ genre_label }} {% endfor %} </li>

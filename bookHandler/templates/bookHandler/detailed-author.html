@@ -1,0 +1,28 @@
+{% extends 'bookHandler/base.html' %}
+
+{% block body %}
+
+<div class="row justify-content-center">
+<div class="col-md-4 col-10">
+    <div class="card w-50">
+        <div class="card-header">
+            {{ author.last_name }} {{author.first_name}}
+        </div>
+
+        <div class="card-body">
+
+            <ul class="list-group list-group-flush">
+                
+                {% for book in book_list %}
+                    <li class="list-group-item"> <a href="{% url 'bookHandler:detail_abstract' book.id %}">{{ book.title }} </a></li>
+                {% endfor %}
+            </ul>
+
+        </div>
+
+    </div>
+</div>
+</div>
+
+
+{% endblock %}

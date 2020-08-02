@@ -10,7 +10,10 @@
 <div class="container mb-4 justify-content-start" id="mainBookList">
 {% for book, author in book_list_with_author %}
     <div class="row">
-        <div class="col"> <a href=" {% url  'bookHandler:detail_abstract' book.id %}">{{ book.title }} </a> ({{ author }}) </div>
+        <div class="col"> 
+            <a href="{% url  'bookHandler:detail_abstract' book.id %}"> {{ book.title }} </a> 
+            ( {{ author }} )
+        </div>
     </div>
 {% endfor %}
 </div>

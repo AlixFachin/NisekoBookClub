@@ -1,4 +1,4 @@
-from django.shortcuts import render,redirect
+from django.shortcuts import render,redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 
 from .models import AbstractBook, ActualBook, Genre, Author, Transaction
@@ -35,7 +35,7 @@ def abstract_detailed_view(request, book_id):
 
 
 def actualBook_detailed_view(request, book_id):
-    actual_book = ActualBook.objects.get(id=book_id)
+    actual_book = get_object_or_404(ActualBook, id=book_id)
     abstract_book = actual_book.abstract_book
     transaction_list = actual_book.transactions.all()
 
@@ -54,7 +54,12 @@ def profile_view(request, user_id):
 
 # Showing the author profile, a bio, a list of books (and availability of some stuff)
 def author_detailed_view(request, author_id):
-    pass
+    author = get_object_or_404(Author, pk=author_id)
+    book_list = AbstractBook.objects.filter(author=author)
+    context = { 'author' : author, 'book_list' : book_list }
+
+    return render(request, 'bookHandler/detailed-author.html', context)
+
 
 @login_required
 def add_book_view(request):
