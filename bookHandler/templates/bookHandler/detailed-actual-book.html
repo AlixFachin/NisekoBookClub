@@ -1,0 +1,33 @@
+{% extends 'bookHandler/base.html' %}
+
+{% block body %}
+
+<div class="container">
+    <div class="row bg-light">
+        <h2> {{ abstract_book.title }} </h2>
+        
+    </div>
+    <div class="row">
+        <h3> {{ abstract_book.author }}</h3>
+    </div>
+
+    <div class="row">
+        Book created on {{actual_book.created_date}}. <br>
+        Book Owner: {{actual_book.owner}} living around {{actual_book.owner.get_location_display}} <br>
+        Status: {{actual_book.get_status_display}}
+    </div>
+
+    <div class="row">
+        List of past transactions for this title:
+    </div>
+
+    <table class="table">
+        <tr><th> Borrower </th> <th> Borrowed Date </th> <th> Returned Date </th> <th> Rating </th>  </tr>
+        {% for transaction in transactions_list %}
+            <tr> <td> {{ transaction.borrower }} </td> <td> {{ transaction.lend_date }} </td> <td> {{ transaction.return_date }} </td> <td>  </td> </tr>
+        {% endfor %}
+    </table>
+</div>
+
+
+{% endblock %}

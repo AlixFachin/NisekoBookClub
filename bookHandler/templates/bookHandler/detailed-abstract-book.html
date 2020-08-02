@@ -1,0 +1,40 @@
+{% extends 'bookHandler/base.html' %}
+
+{% block body %}
+
+<div class="container">
+    <div class="row bg-light">
+        <h2> {{ book.title }} </h2>
+        
+    </div>
+    <div class="row">
+        <div class="col offset-1">
+            <h3> {% for author in author_list %} {{ author }} {% if not forloop.last %} , {% endif %} {% endfor %} </h3>
+            <ul>
+                <li> ISBN = {{ book.isbn }}</li>
+                <li> {% for genre_label in genre_list %} {{ genre_label }} {% endfor %} </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-1"> Book summary:</div>
+        <div class="col">
+            {{ book.summary }}
+        </div>
+    </div>
+
+    <div class="row">
+        List of existing books for this title:
+    </div>
+
+    <table class="table">
+        <tr><th> id </th> <th> Created Date </th> <th> Status </th> <th> User </th>  </tr>
+        {% for actualBook in actual_list %}
+            <tr> <td> <a href="{% url 'bookHandler:detail_actual' actualBook.id %}">{{actualBook.id}} </a></td> <td> {{ actualBook.created_date }} </td> <td> {{ actualBook.get_status_display }} </td> <td> {{ actualBook.owner }} </td> </tr>
+        {% endfor %}
+    </table>
+</div>
+
+
+{% endblock %}
