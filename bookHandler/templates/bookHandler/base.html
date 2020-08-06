@@ -13,7 +13,7 @@
     
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Niseko Book Club</title>
+    <title> {% block title %} Niseko Book Club {% endblock %}</title>
 
 
 </head>
@@ -30,8 +30,8 @@
     {% endif %}
 
     <!-- Main Navigation bar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a navbar="navbar-brand" href="">Niseko Book Club</a>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <a class="navbar-brand">Niseko Book Club</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -44,7 +44,7 @@
                     <a class="nav-link">Search</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link">Profile</a>
+                    <a class="nav-link" href="{% url 'bookHandler:user_profile' %}">Profile</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{%url 'bookHandler:add_book' %}">Add Book</a>

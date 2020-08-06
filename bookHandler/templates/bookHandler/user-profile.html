@@ -1,0 +1,152 @@
+{% extends 'bookHandler/base.html' %}
+
+{% block body %}
+
+<div class="row mb-4 bg-light">
+    <div class="col">
+       <h1>User: {{ user.username }}</h1>
+    </div>
+</div>
+
+<!-- Tab navbar definition -->
+<ul class="nav nav-tabs" id="userProfileTabs" role="tablist">
+    <li class="nav-item">
+        <a class="nav-link active" id="inventory-tab" data-toggle="tab" href="#inventory" role="tab" aria-controls="inventory" aria-selected="true"> Inventory</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" id="transactions-tab" data-toggle="tab" href="#BorrowRequests" role="tab" aria-controls="borrowrequests"> Borrow Requests</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" id="transactions-tab" data-toggle="tab" href="#LendRequests" role="tab" aria-controls="borrowrequests"> Lend Requests</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" id="transactions-tab" data-toggle="tab" href="#TransactionsHistory" role="tab" aria-controls="borrowrequests"> Transactions History</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" id="settings-tab" data-toggle="tab" href="#settings" role="tab" aria-controls="settings"> Settings</a>
+    </li>
+</ul>
+
+<!-- Definition of the actual content of the tab panels -->
+<div class="tab-content" id="userProfileTabContents">
+    <div class="tab-pane fade show active" id="inventory" role="tabpanel" aria-labelledby="inventory-tab"> 
+        <div class="row justify-content-center">
+            <div class="col-8">
+                <h3> Personal Inventory</h3>
+                <table class="table table-striped w-70">
+                    {% for actual_book in personal_inventory  %}
+                        <tr> <td><a href="{% url 'bookHandler:detail_abstract' actual_book.abstract_book.id %}">{{ actual_book.abstract_book.title }}  </a></td>
+                            <td>({% for author in actual_book.abstract_book.author.all %} {{ author.last_name }} {{ author.first_name }} {% if not forloop.last %} , {% endif %}  {% endfor %}) </td>
+                            <td>input on {{ actual_book.created_date }} </td>
+                            <td> <button>Edit</button> </td>
+                            <td> <button>Delete</button></td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+        <div class="row justify-content-around">
+            <div class="col-4">
+                <button>Add Book</button>
+            </div>
+            <div class="col-4">
+                <button>Other Action</button>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="tab-pane fade" id="BorrowRequests" role="tabpanel" aria-labelledby="borrowrequest-tab"> 
+        <div class="row justify-content-center">
+            <div class="col-8 md-auto">
+                <h5>Book Borrowed request and status </h5>
+                <table class="table table-striped w-70">
+                    <thead class="thead-dark">
+                        <tr> 
+                            <th scope="col"> Book Title </th> <th scope="col"> Status  </th> <th scope="col"> Lender  </th> <th scope="col"> Lent Date  </th><th scope="col"> Return Date  </th>
+                        </tr>        
+                    </thead>
+                    {% for borrow_transaction in borrowed_history  %}
+                        <tr>
+                            <td class="align-middle"> {{ borrow_transaction.book.abstract_book.title | truncatewords:10 }} </td>
+                            <td class="align-middle"> {{ borrow_transaction.get_transaction_state_display }} </td>
+                            <td class="align-middle"> {{ borrow_transaction.lender  }} </td>
+                            <td class="align-middle"> {{ borrow_transaction.lend_date }} </td>
+                            <td class="align-middle"> {{ borrow_transaction.return_date  }} </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+        
+    </div>
+
+    <div class="tab-pane fade" id="LendRequests" role="tabpanel" aria-labelledby="lendrequests-tab"> 
+        <div class="row justify-content-center">
+            <div class="col-8 md-auto">
+                <h5>Book lent request and status </h5>
+                <table class="table table-striped w-70">
+                    <thead class="thead-dark">
+                        <tr> 
+                            <th scope="col"> Book Title </th> <th scope="col"> Status  </th> <th scope="col"> Borrower  </th> <th scope="col"> Lent Date  </th><th scope="col"> Return Date  </th>
+                        </tr>        
+                    </thead>
+                    {% for lent_transaction in lent_history  %}
+                        <tr>
+                            <td class="align-middle"> {{ lent_transaction.book.abstract_book.title | truncatewords:10 }} </td>
+                            <td class="align-middle"> {{ lent_transaction.get_transaction_state_display }} </td>
+                            <td class="align-middle"> {{ lent_transaction.borrower  }} </td>
+                            <td class="align-middle"> {{ lent_transaction.lend_date }} </td>
+                            <td class="align-middle"> {{ lent_transaction.return_date  }} </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+        
+    </div>
+
+    <div class="tab-pane fade" id="TransactionsHistory" role="tabpanel" aria-labelledby="transactions-tab"> 
+        <div class="row justify-content-center">
+            <div class="col-8 md-auto">
+                <h5>Book lent request / history </h5>
+                <table class="table table-striped w-70">
+                    <thead class="thead-dark">
+                        <tr> 
+                            <th scope="col"> Book Title </th> <th scope="col"> Status  </th> <th scope="col"> Owner </th> <th scope="col"> Borrower  </th> <th scope="col"> Lent Date  </th><th scope="col"> Return Date  </th>
+                        </tr>        
+                    </thead>
+                    {% for lent_transaction in transaction_history  %}
+                        <tr>
+                            <td class="align-middle"> {{ lent_transaction.book.abstract_book.title | truncatewords:10 }} </td>
+                            <td class="align-middle"> {{ lent_transaction.get_transaction_state_display }} </td>
+                            <td class="align-middle"> {{ lent_transaction.lender  }} </td>
+                            <td class="align-middle"> {{ lent_transaction.borrower  }} </td>
+                            <td class="align-middle"> {{ lent_transaction.lend_date }} </td>
+                            <td class="align-middle"> {{ lent_transaction.return_date  }} </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+        
+    </div>
+
+    <div class="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab"> 
+        <div class="row">
+            <div class="col md-auto">
+                <h5>Please find below your settings:</h5>
+                <ul>
+                    <li> Username: {{ user.username }}</li>
+                    <li> Profile created on the: {{ user.date_joined }}</li>
+                    <li> E-mail: {{ user.email }} </li>
+                </ul>
+                
+            </div>
+        </div>
+        
+    </div>
+
+</div>
+
+{% endblock %}

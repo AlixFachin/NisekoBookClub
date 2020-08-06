@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser
 import uuid
 from django.utils import timezone
 from django.conf import settings # for the settings.AUTH_USER_MODEL
+from django.urls import reverse
 
 # Create your models here.
 
@@ -38,6 +39,10 @@ class AbstractBook(models.Model):
 
     def __str__(self):
         return self.title
+
+    def get_absolute_url(self):
+        return reverse('bookHandler:detail_abstract', args=[self.id])
+
 
     @staticmethod
     def get_or_create(title, author_list_string, book_summary=''):
@@ -78,18 +83,24 @@ class ActualBook(models.Model):
     abstract_book = models.ForeignKey(AbstractBook, on_delete=models.CASCADE, related_name='instances')
     created_date = models.DateField(editable=False, default=timezone.now)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE, default=1, related_name='book_inventory')
+    AVAILABLE = 'a'
+    UNAVAILABLE = 'u'
+    OUT_FOR_RENT = 'o'
     BOOK_STATUS = (
-        ('a', 'Available'),
-        ('u', 'Unavailable'), # Not borrowed but lost, damaged or owner wants to remove from the market
-        ('o', 'Out for lent'),
+        (AVAILABLE, 'Available'),
+        (UNAVAILABLE, 'Unavailable'), # Not borrowed but lost, damaged or owner wants to remove from the market
+        (OUT_FOR_RENT, 'Out for lent'),
     )
     status = models.CharField(max_length=1, choices=BOOK_STATUS, default='a')
 
     class Meta:
         ordering = ['-created_date']
 
+    def get_absolute_url(self):
+        return reverse('bookHandler:detail_actual', args=[self.id])
+
     def __str__(self):
-        return '%s - %s (%s)' % (self.abstract_book.title,self.abstract_book.author,self.id)
+        return '%s - owned by %s (%s)' % (self.abstract_book.title,self.owner.username, self.id)
 
 class Author(models.Model):
     """ Model represents the list of authors """
@@ -100,7 +111,7 @@ class Author(models.Model):
         ordering = ['last_name', 'first_name']
     
     def get_absolute_url(self):
-        pass
+        return reverse('bookHandler:detail_author', args=[self.id])
     
     def __str__(self):
         return '%s %s' % (self.last_name, self.first_name)
@@ -136,18 +147,30 @@ class Author(models.Model):
 class Transaction(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, help_text='Unique ID for the transaction')
     book = models.ForeignKey(ActualBook, on_delete=models.CASCADE,related_name='transactions')
-    borrower = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='transactions')
+    lender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='lend_requests' )
+    borrower = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='borrow_requests')
     lend_date = models.DateField(default=timezone.now)
     return_date = models.DateField(default=timezone.now)
 
-    TRANSACTION_TYPE = (
-        ('i', 'Initial Transaction'),
-        ('e', 'Extension'),
+    INITIAL_REQUEST = 'i'
+    APPROVED_REQUEST = 'a'
+    REJECTED_REQUEST = 'k'
+    BOOK_LENT = 'l'
+    BOOK_RETURNED = 'r'
+    EXTENSION = 'e'
+
+    TRANSACTION_STATUS = (
+        (INITIAL_REQUEST, 'Initial Request'),
+        (APPROVED_REQUEST, 'Request Approved'),
+        (REJECTED_REQUEST, 'Request Rejected'),
+        (BOOK_LENT, 'Book lent'),
+        (BOOK_RETURNED, 'Book returned'),
+        (EXTENSION, 'Extension'),
     )
-    transaction_type = models.CharField(max_length=1, choices=TRANSACTION_TYPE, default='i')
+    transaction_state = models.CharField(max_length=1, choices=TRANSACTION_STATUS, default='i')
 
     class Meta:
         ordering=['-lend_date']
 
     def __str__(self):
-        return '%s on %s btw %s and %s' % (self.book, self.lend_date, self.book.owner, self.borrower)
+        return '"%s" on %s btw %s and %s' % (self.book.abstract_book.title, self.lend_date, self.book.owner, self.borrower)

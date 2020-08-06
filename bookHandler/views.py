@@ -1,5 +1,7 @@
 from django.shortcuts import render,redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.db.models import Q
 
 from .models import AbstractBook, ActualBook, Genre, Author, Transaction
 from django.contrib.auth.models import User
@@ -48,10 +50,6 @@ def actualBook_detailed_view(request, book_id):
     return render(request, 'bookHandler/detailed-actual-book.html', context )
 
 
-# User profile: User data, then tabbed view of past lent books, past borrowed books, and edit inventory (add books / edit)
-def profile_view(request, user_id):
-    pass
-
 # Showing the author profile, a bio, a list of books (and availability of some stuff)
 def author_detailed_view(request, author_id):
     author = get_object_or_404(Author, pk=author_id)
@@ -81,3 +79,46 @@ def add_book_view(request):
     else:
         newForm = UserBookForm()
         return render(request,'bookHandler/new-book-form.html', { 'form' : newForm}  )
+
+@login_required
+def new_borrowing_request(request, book_id):
+    # the current user logged wants to borrow the given book.
+    # We have to check if the book is still available.
+    # If everything is OK, we have to create a new transaction in 'request' mode and connect all the dots.
+    # In the future, we will be able to send an e-mail of new notification to the lender.
+    if request.method == 'POST':
+        actualbook = get_object_or_404(ActualBook,id=book_id)
+        if actualbook.status == ActualBook.AVAILABLE:
+            book_owner = actualbook.owner
+            new_request = Transaction(book=actualbook, lender=book_owner, borrower=request.user)
+            new_request.transaction_state = Transaction.INITIAL_REQUEST
+            new_request.save()
+            actualbook.status = ActualBook.UNAVAILABLE # We will put it unavailable until the owner denies the request or the book is given back
+            actualbook.save()
+            messages.success(request, 'Book successfully borrowed!')
+        else:
+            messages.error(request, 'This book is not available')
+    else:
+        messages.error(request,'Error in the HTTP Request')
+    return redirect(actualbook)
+
+
+@login_required
+def profile_view(request):
+    # In the profile view we look at the following:
+    # a) All the books / inventory of the user
+    # b and c) All the history of books lent and borrowed
+    # d) User characteristics (pasword, e-mail, ...)
+    # e) Other activities (latest reviews, ...)
+    personal_inventory = ActualBook.objects.filter(owner=request.user).order_by('-created_date')
+    lent_history = Transaction.objects.filter(Q(lender=request.user) & Q(transaction_state=Transaction.INITIAL_REQUEST)).order_by('transaction_state','-lend_date') 
+    borrowed_history = Transaction.objects.filter(Q(borrower=request.user)&Q(transaction_state=Transaction.INITIAL_REQUEST)).order_by('transaction_state', '-lend_date')
+    transaction_history = Transaction.objects.filter(Q(borrower=request.user)|Q(lender=request.user)).order_by('transaction_state', '-lend_date')
+    context = {
+        'personal_inventory':personal_inventory,
+        'lent_history': lent_history, 
+        'borrowed_history' : borrowed_history,
+        'transaction_history' : transaction_history,
+    }
+    return render(request, 'bookHandler/user-profile.html', context)
+

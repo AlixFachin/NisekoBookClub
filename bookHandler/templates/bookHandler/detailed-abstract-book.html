@@ -30,12 +30,23 @@
         List of existing books for this title:
     </div>
 
-    <table class="table">
-        <tr><th> id </th> <th> Created Date </th> <th> Status </th> <th> User </th>  </tr>
+    <table class="table align-middle">
+        <thead class="thead-light"> <tr><th> id </th> <th> Created Date </th> <th> Status </th> <th> Owner </th> <th>Status</th>  </tr></thead>
         {% for actualBook in actual_list %}
-            <tr> <td> <a href="{% url 'bookHandler:detail_actual' actualBook.id %}">{{actualBook.id}} </a></td> <td> {{ actualBook.created_date }} </td> <td> {{ actualBook.get_status_display }} </td> <td> {{ actualBook.owner }} </td> </tr>
+            <tr> <td class="align-middle"> <a href="{% url 'bookHandler:detail_actual' actualBook.id %}">{{actualBook.id | truncatechars:10}} </a></td> 
+                <td class="align-middle"> {{ actualBook.created_date | timesince }} </td> 
+                <td class="align-middle"> {{ actualBook.get_status_display }} </td> 
+                <td class="align-middle"> {{ actualBook.owner }} </td> 
+            <td class="align-middle">
+            {% if actualBook.status == actualbook.AVAILABLE %}
+            <form method="POST" action="{% url 'bookHandler:new_transaction' actualBook.id %}" class="form-inline"> 
+                {% csrf_token %} <button type="submit" class="btn btn-primary"  >Request</button> 
+            </form> {% else %} <a class="btn btn-secondary btn-disabled">(Request)</a> {% endif %}</td>
+            </tr>
         {% endfor %}
     </table>
+
+
 </div>
 
 

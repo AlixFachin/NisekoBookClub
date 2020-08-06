@@ -25,7 +25,7 @@ SECRET_KEY = '!$^jjuso193h8@_)k^t^r@u8y(js1pybp+j#f*577vs41i2^*3'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost','127.0.0.1','[::1]','192.168.1.8',]
 
 
 # Application definition
@@ -102,6 +102,10 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Custom user authentification model
 AUTH_USER_MODEL = 'bookHandler.User'
+
+LOGIN_REDIRECT_URL = 'home'
+LOGOUT_REDIRECT_URL = 'home'
+LOGIN_URL = 'login'
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/

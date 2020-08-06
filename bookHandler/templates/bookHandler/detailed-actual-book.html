@@ -8,7 +8,9 @@
         
     </div>
     <div class="row">
-        <h3> {{ abstract_book.author }}</h3>
+        {% for author in abstract_book.author.all %}
+        <h3> {{ author }} {% if not forloop.last %} , {% endif %} </h3>
+        {% endfor %}
     </div>
 
     <div class="row">
