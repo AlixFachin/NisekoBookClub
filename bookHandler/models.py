@@ -18,6 +18,9 @@ class User(AbstractUser):
         ('oo', 'Others'),
     )
     location = models.TextField(max_length=2, choices=AREA_LOCATIONS, default='nt')
+    
+    def get_absolute_url(self):
+        return reverse('bookHandler:user_profile')
 
 class Genre(models.Model):
     """ Model representing a book genre """

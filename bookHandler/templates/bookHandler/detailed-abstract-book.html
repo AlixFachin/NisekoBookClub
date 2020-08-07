@@ -38,10 +38,11 @@
                 <td class="align-middle"> {{ actualBook.get_status_display }} </td> 
                 <td class="align-middle"> {{ actualBook.owner }} </td> 
             <td class="align-middle">
-            {% if actualBook.status == actualbook.AVAILABLE %}
-            <form method="POST" action="{% url 'bookHandler:new_transaction' actualBook.id %}" class="form-inline"> 
-                {% csrf_token %} <button type="submit" class="btn btn-primary"  >Request</button> 
-            </form> {% else %} <a class="btn btn-secondary btn-disabled">(Request)</a> {% endif %}</td>
+                {% if actualBook.status == actualBook.AVAILABLE and actualBook.owner != user %}
+                <form method="POST" action="{% url 'bookHandler:new_transaction' actualBook.id %}" class="form-inline"> 
+                    {% csrf_token %} <button type="submit" class="btn btn-primary">Request</button> 
+                </form> {% else %} <a class="btn btn-secondary btn-disabled">(Not available)</a> {% endif %}
+            </td>
             </tr>
         {% endfor %}
     </table>

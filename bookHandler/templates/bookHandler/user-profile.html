@@ -14,13 +14,13 @@
         <a class="nav-link active" id="inventory-tab" data-toggle="tab" href="#inventory" role="tab" aria-controls="inventory" aria-selected="true"> Inventory</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" id="transactions-tab" data-toggle="tab" href="#BorrowRequests" role="tab" aria-controls="borrowrequests"> Borrow Requests</a>
+        <a class="nav-link" id="transactions-tab" data-toggle="tab" href="#BorrowRequests" role="tab" aria-controls="borrowrequests"> Books you requested</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" id="transactions-tab" data-toggle="tab" href="#LendRequests" role="tab" aria-controls="borrowrequests"> Lend Requests</a>
+        <a class="nav-link" id="transactions-tab" data-toggle="tab" href="#LendRequests" role="tab" aria-controls="borrowrequests"> Your books</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" id="transactions-tab" data-toggle="tab" href="#TransactionsHistory" role="tab" aria-controls="borrowrequests"> Transactions History</a>
+        <a class="nav-link" id="transactions-tab" data-toggle="tab" href="#TransactionsHistory" role="tab" aria-controls="borrowrequests"> Reading History</a>
     </li>
     <li class="nav-item">
         <a class="nav-link" id="settings-tab" data-toggle="tab" href="#settings" role="tab" aria-controls="settings"> Settings</a>
@@ -55,11 +55,12 @@
         </div>
 
     </div>
-
+    <!-- BORROW REQUESTS: Books that the current user wants to borrow -->
     <div class="tab-pane fade" id="BorrowRequests" role="tabpanel" aria-labelledby="borrowrequest-tab"> 
         <div class="row justify-content-center">
             <div class="col-8 md-auto">
                 <h5>Book Borrowed request and status </h5>
+                <p><small>List of books that you would like to read and requested</small></p>
                 <table class="table table-striped w-70">
                     <thead class="thead-dark">
                         <tr> 
@@ -80,11 +81,12 @@
         </div>
         
     </div>
-
+    <!-- BORROW REQUESTS: Books that the user owns and other users want to borrow -->
     <div class="tab-pane fade" id="LendRequests" role="tabpanel" aria-labelledby="lendrequests-tab"> 
         <div class="row justify-content-center">
             <div class="col-8 md-auto">
-                <h5>Book lent request and status </h5>
+                <h5>Your books that other wants </h5>
+                <p><small>List of books that you own and other users would like to borrow</small></p>
                 <table class="table table-striped w-70">
                     <thead class="thead-dark">
                         <tr> 
@@ -98,6 +100,9 @@
                             <td class="align-middle"> {{ lent_transaction.borrower  }} </td>
                             <td class="align-middle"> {{ lent_transaction.lend_date }} </td>
                             <td class="align-middle"> {{ lent_transaction.return_date  }} </td>
+                            <td class="align-middle"> 
+                            <a href="{% url 'bookHandler:reply_transaction' lent_transaction.id %}" class="btn btn-primary" role="button"> Reply </a>
+                            </td>
                         </tr>
                     {% endfor %}
                 </table>
@@ -106,6 +111,7 @@
         
     </div>
 
+    <!-- REQUEST HISTORY: List of all inactive requests in the past -->
     <div class="tab-pane fade" id="TransactionsHistory" role="tabpanel" aria-labelledby="transactions-tab"> 
         <div class="row justify-content-center">
             <div class="col-8 md-auto">

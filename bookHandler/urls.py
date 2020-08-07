@@ -11,4 +11,5 @@ urlpatterns=[
     path('new_book', views.add_book_view, name='add_book'),
     path('user_profile',views.profile_view, name='user_profile'),
     path('new_transaction/<uuid:book_id>', views.new_borrowing_request, name='new_transaction'),
+    path('reply_transaction/<uuid:transaction_id>',views.reply_request, name='reply_transaction'),
 ]
