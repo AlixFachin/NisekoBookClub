@@ -6,16 +6,23 @@
 
 <ul class="list-group">
     <li class="list-group-item">  {{ transaction.borrower }} requested to borrow the book below:</li>
-    <li class="list-group-item"> Book Title: {{ transaction.book.abstract_book.title  }}  </li>
-    <li class="list-group-item"> <em>Book author(s): {% for author in transaction.book.author.all %} {{ author }} {% if not forloop.last %} , {% endif %} {% endfor %} </em></li>
+    <li class="list-group-item"> <h3>Book Title: {{ transaction.book.abstract_book.title  }} </h3> </li>
+    <li class="list-group-item"> <h6>Book author(s): {% for author in transaction.book.abstract_book.author.all %} {{ author }} {% if not forloop.last %} , {% endif %} {% endfor %} </em></h6></li>
     <li class="list-group-item"> Book owner: {{ transaction.lender }} </li>
-    <li class="list-group-item"> Request created on: </li>
+    <li class="list-group-item"> Request created on: {{ transaction.created_date }} </li>
 </ul>
 
-<form method="POST" action="{% url 'bookHandler:reply_transaction' transaction.id %}">
-    {% csrf_token %}
-    {{ form.as_table }}
-    <button type="submit" class="btn btn-primary">Submit</button>
-</form>
+<div class="row justify-content-center">
+    <div class="col-4">
+        <form method="POST" action="{% url 'bookHandler:reply_transaction' transaction.id %}">
+            {% csrf_token %}
+            <ul class="list-group">
+                {{ form.as_ul }}
+            </ul>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+        
+    </div>    
+</div>
 
 {% endblock %}

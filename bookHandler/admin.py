@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import AbstractBook, ActualBook, Genre, Author, Transaction, User
+from .models import AbstractBook, ActualBook, Genre, Author, Transaction, User, Message
 
 admin.site.site_header = 'Niseko Book Club'
 admin.site.site_title = 'Niseko Book Club Admin Page'
@@ -9,6 +9,7 @@ admin.site.register(Genre)
 admin.site.register(Author)
 admin.site.register(Transaction)
 admin.site.register(User)
+admin.site.register(Message)
 
 @admin.register(ActualBook)
 class ActualBookAdmin(admin.ModelAdmin):

@@ -17,10 +17,10 @@
         <a class="nav-link" id="transactions-tab" data-toggle="tab" href="#BorrowRequests" role="tab" aria-controls="borrowrequests"> Books you requested</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" id="transactions-tab" data-toggle="tab" href="#LendRequests" role="tab" aria-controls="borrowrequests"> Your books</a>
+        <a class="nav-link" id="transactions-tab" data-toggle="tab" href="#LendRequests" role="tab" aria-controls="borrowrequests"> Requests for your books</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" id="transactions-tab" data-toggle="tab" href="#TransactionsHistory" role="tab" aria-controls="borrowrequests"> Reading History</a>
+        <a class="nav-link" id="transactions-tab" data-toggle="tab" href="#TransactionsHistory" role="tab" aria-controls="borrowrequests"> Request History</a>
     </li>
     <li class="nav-item">
         <a class="nav-link" id="settings-tab" data-toggle="tab" href="#settings" role="tab" aria-controls="settings"> Settings</a>
@@ -38,8 +38,8 @@
                         <tr> <td><a href="{% url 'bookHandler:detail_abstract' actual_book.abstract_book.id %}">{{ actual_book.abstract_book.title }}  </a></td>
                             <td>({% for author in actual_book.abstract_book.author.all %} {{ author.last_name }} {{ author.first_name }} {% if not forloop.last %} , {% endif %}  {% endfor %}) </td>
                             <td>input on {{ actual_book.created_date }} </td>
-                            <td> <button>Edit</button> </td>
-                            <td> <button>Delete</button></td>
+                            <td> <button class="btn btn-primary">Edit</button> </td>
+                            <td> <button class="btn btn-warning">Delete</button></td>
                         </tr>
                     {% endfor %}
                 </table>
@@ -64,7 +64,7 @@
                 <table class="table table-striped w-70">
                     <thead class="thead-dark">
                         <tr> 
-                            <th scope="col"> Book Title </th> <th scope="col"> Status  </th> <th scope="col"> Lender  </th> <th scope="col"> Lent Date  </th><th scope="col"> Return Date  </th>
+                            <th scope="col"> Book Title </th> <th scope="col"> Status  </th> <th scope="col"> Lender  </th> <th scope="col"> Lent Date  </th><th scope="col"> Return Date  </th><th scope="col">Action</th>
                         </tr>        
                     </thead>
                     {% for borrow_transaction in borrowed_history  %}
@@ -74,6 +74,7 @@
                             <td class="align-middle"> {{ borrow_transaction.lender  }} </td>
                             <td class="align-middle"> {{ borrow_transaction.lend_date }} </td>
                             <td class="align-middle"> {{ borrow_transaction.return_date  }} </td>
+                            <td><a href="{% url 'bookHandler:view_conversation' borrow_transaction.id %}" class="btn btn-primary" role="button"> View Conversation </a></td>
                         </tr>
                     {% endfor %}
                 </table>
@@ -85,13 +86,13 @@
     <div class="tab-pane fade" id="LendRequests" role="tabpanel" aria-labelledby="lendrequests-tab"> 
         <div class="row justify-content-center">
             <div class="col-8 md-auto">
-                <h5>Your books that other wants </h5>
+                <h5>Your books that other Users have requested </h5>
                 <p><small>List of books that you own and other users would like to borrow</small></p>
                 <table class="table table-striped w-70">
                     <thead class="thead-dark">
                         <tr> 
-                            <th scope="col"> Book Title </th> <th scope="col"> Status  </th> <th scope="col"> Borrower  </th> <th scope="col"> Lent Date  </th><th scope="col"> Return Date  </th>
-                        </tr>        
+                            <th scope="col"> Book Title </th> <th scope="col"> Status  </th> <th scope="col"> Borrower  </th> <th scope="col"> Lent Date  </th><th scope="col"> Return Date  </th><th scope="col"> Action  </th>
+                        </tr>
                     </thead>
                     {% for lent_transaction in lent_history  %}
                         <tr>
@@ -101,8 +102,14 @@
                             <td class="align-middle"> {{ lent_transaction.lend_date }} </td>
                             <td class="align-middle"> {{ lent_transaction.return_date  }} </td>
                             <td class="align-middle"> 
-                            <a href="{% url 'bookHandler:reply_transaction' lent_transaction.id %}" class="btn btn-primary" role="button"> Reply </a>
+                                {% if lent_transaction.transaction_state == lent_transaction.INITIAL_REQUEST %}
+                                    <a href="{% url 'bookHandler:reply_transaction' lent_transaction.id %}" class="btn btn-primary" role="button"> Reply </a>
+                                {% else %}
+                                    <a href="{% url 'bookHandler:view_conversation' lent_transaction.id %}" class="btn btn-primary" role="button"> View Conversation </a>
+                                    <a href="{% url 'bookHandler:edit_transaction' lent_transaction.id %}" class="btn btn-primary" role="button"> Update Status </a>
+                                {% endif %}
                             </td>
+                            
                         </tr>
                     {% endfor %}
                 </table>
@@ -130,6 +137,7 @@
                             <td class="align-middle"> {{ lent_transaction.borrower  }} </td>
                             <td class="align-middle"> {{ lent_transaction.lend_date }} </td>
                             <td class="align-middle"> {{ lent_transaction.return_date  }} </td>
+                            <td class="align-middle"> {% if lent_transaction.is_active %} Active {% else %} Not active {% endif %} </td>
                         </tr>
                     {% endfor %}
                 </table>

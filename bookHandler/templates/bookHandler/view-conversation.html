@@ -1,0 +1,44 @@
+{% extends 'bookHandler/base.html' %}
+
+{% block title %} View Conversation about {{ transaction.book.abstract_book.title }}  {% endblock %}
+
+{% block body %}
+
+<h2> Conversation about "{{ transaction.book.abstract_book.title }}" </h2>
+<em>between {{ transaction.lender }} and {{ transaction.borrower }}, created on {{ transaction.created_date }} </em>
+
+<!-- Inserting the form to send a new commentary -->
+<div class="row">
+    <div class="col-4 offset-1">
+        <form method="POST">
+            {% csrf_token %}
+            {{ new_message_form}}
+            <button class="btn btn-primary" type="Submit">Send</button>
+        </form>
+    </div>
+</div>
+
+{% if not message_list %}
+    <h5> No messages to display</h5>
+{% else %}
+    <div class="container">
+
+    {% for message in message_list %}
+        <div class="row">
+            {% if message.author == user %}
+                <div class="col-8 mb-2">
+                <div class="card p-3 border rounded border-primary">
+            {% else %}
+                <div class="col-8 offset-4 mb-2">
+                <div class="card p-3 border rounded border-secondary">
+            {% endif %}
+                    <h6 class="card-subtitle text-muted"> {{ message.timestamp }} from {{message.author}} to {{message.destination}}</h6>
+                    <div class="card-body"> {{message.text }} </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+    </div>
+
+{% endif %}
+{% endblock %}

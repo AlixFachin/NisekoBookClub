@@ -30,7 +30,26 @@ class TransactionReplyForm(forms.Form):
     lend_date = forms.DateField()
     return_date = forms.DateField()
     transaction_id = forms.UUIDField(widget=forms.HiddenInput)
+    message = forms.CharField(max_length=500, required=False, widget=forms.Textarea(attrs={'class':'form-control'}) )
 
     class Meta:
-        fields = ('owner_reply', 'lend_date', 'return_date')
+        fields = ('owner_reply', 'lend_date', 'return_date', 'message')
+
+class EditTransactionForm(forms.ModelForm):
+
+    new_message = forms.CharField(max_length=500, required=False,help_text='Enter an optional answer', widget=forms.Textarea)
+
+    class Meta:
+        model = Transaction
+        fields = ['lend_date', 'return_date', 'transaction_state', 'new_message']
+    
+    def __init__(self, *args, **kwargs):
+        super(EditTransactionForm,self).__init__(*args, **kwargs)
+        for field in iter(self.fields):
+            if self.fields[field].widget.__class__.__name__ in ('AdminTextInputWidget' , 'Textarea' ,'TextInput', 'NumberInput' , 'AdminURLFieldWidget', 'Select'):
+                self.fields[field].widget.attrs.update({ 'class': 'form-control' })
+
+class NewMessageForm(forms.Form):
+
+    message_text = forms.CharField(max_length=500, required=False, widget=forms.Textarea(attrs={'class':'form-control'}) )
 

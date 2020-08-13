@@ -22,6 +22,45 @@ class User(AbstractUser):
     def get_absolute_url(self):
         return reverse('bookHandler:user_profile')
 
+class Comment(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, db_index=True)
+    text = models.TextField(max_length=500, blank=True)
+    read = models.BooleanField(default=False, db_index=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Comment"
+        verbose_name_plural = "Comments"
+        ordering = ['-timestamp']
+    
+    def __str__(self):
+        return self.text 
+
+class Message(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, db_index=True, related_name='messages_written')
+    destination = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, db_index=True, related_name='messages_received')
+    transaction = models.ForeignKey('Transaction', on_delete=models.SET_NULL, null=True, db_index=True, related_name='messages')
+    text = models.TextField(max_length=500, blank=True)
+    read = models.BooleanField(default=False, db_index=True)
+    timestamp = models.DateTimeField(auto_now_add=True, editable=False)
+
+    class Meta:
+        verbose_name = "Message"
+        verbose_name_plural = "Messages"
+        ordering = ['-timestamp']
+    
+    def __str__(self):
+        return '%s to %s - %s' % (self.author, self.destination, self.text)
+   
+    def save(self, *args, **kwargs):
+        """ Updates the created date value """
+        if not self.id:
+            self.timestamp = timezone.now()
+        return super(Message,self).save(args,kwargs)
+
+
 class Genre(models.Model):
     """ Model representing a book genre """
     name = models.CharField(max_length=200, help_text='Enter a book genre(e.g. crime, historical fiction, ...')
@@ -152,6 +191,7 @@ class Transaction(models.Model):
     book = models.ForeignKey(ActualBook, on_delete=models.CASCADE,related_name='transactions')
     lender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='lend_requests' )
     borrower = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='borrow_requests')
+    created_date = models.DateField(default=timezone.now, editable=False)
     lend_date = models.DateField(default=timezone.now)
     return_date = models.DateField(default=timezone.now)
 
@@ -161,6 +201,7 @@ class Transaction(models.Model):
     BOOK_LENT = 'l'
     BOOK_RETURNED = 'r'
     EXTENSION = 'e'
+    BOOK_LOST = 'z'
 
     TRANSACTION_STATUS = (
         (INITIAL_REQUEST, 'Initial Request'),
@@ -169,11 +210,25 @@ class Transaction(models.Model):
         (BOOK_LENT, 'Book lent'),
         (BOOK_RETURNED, 'Book returned'),
         (EXTENSION, 'Extension'),
+        (BOOK_LOST, 'Book Lost')
     )
     transaction_state = models.CharField(max_length=1, choices=TRANSACTION_STATUS, default='i')
-
+    
     class Meta:
         ordering=['-lend_date']
 
     def __str__(self):
         return '"%s" on %s btw %s and %s' % (self.book.abstract_book.title, self.lend_date, self.book.owner, self.borrower)
+    
+    def save(self, *args, **kwargs):
+        """ Updates the created date value """
+        if not self.id:
+            self.created_date = timezone.now()
+        return super(Transaction,self).save(args,kwargs)
+    
+    def is_active(self):
+        return self.transaction_state in [self.INITIAL_REQUEST, self.APPROVED_REQUEST,self.BOOK_LENT, self.EXTENSION]
+    
+    def is_terminated(self):
+        return self.transaction_state in [self.REJECTED_REQUEST, self.BOOK_RETURNED, self.BOOK_LOST]
+    

@@ -1,0 +1,23 @@
+{% extends 'bookHandler/base.html' %}
+
+{% block title %} Edit Transaction {% endblock %}
+
+{% block body %}
+
+<h2> Edit Transaction of "{{ transaction.book.abstract_book.title }}" </h2>
+
+<ul class="list-group">
+    <li class="list-group-item"> between {{ transaction.lender }} and {{ transaction.borrower }}  </li>
+    <li class="list-group-item"> Created on {{ transaction.created_date }} </li>
+</ul>
+<div class="card w-50">
+    <form method="POST">
+        {% csrf_token %}
+        <ul>
+            {{ transaction_form.as_ul }}
+        </ul>
+        <button class="btn btn-primary" type="submit"> Submit</button>
+    </form>
+</div>
+
+{% endblock %}
