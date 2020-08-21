@@ -92,17 +92,34 @@ def profile_view(request):
     # d) User characteristics (pasword, e-mail, ...)
     # e) Other activities (latest reviews, ...)
     personal_inventory = ActualBook.objects.filter(owner=request.user).order_by('-created_date')
-    lent_history = Transaction.objects.filter(Q(lender=request.user) & Q(transaction_state__in=[Transaction.INITIAL_REQUEST, Transaction.APPROVED_REQUEST, Transaction.BOOK_LENT])).order_by('transaction_state','-lend_date') 
-    borrowed_history = Transaction.objects.filter(Q(borrower=request.user)&Q(transaction_state__in=[Transaction.INITIAL_REQUEST, Transaction.APPROVED_REQUEST])).order_by('transaction_state', '-lend_date')
     transaction_history = Transaction.objects.filter((Q(borrower=request.user)|Q(lender=request.user))
         &Q(transaction_state__in=[Transaction.BOOK_RETURNED, Transaction.REJECTED_REQUEST, Transaction.BOOK_LOST])).order_by('transaction_state', '-lend_date')
     context = {
         'personal_inventory':personal_inventory,
-        'lent_history': lent_history, 
-        'borrowed_history' : borrowed_history,
         'transaction_history' : transaction_history,
     }
     return render(request, 'bookHandler/user-profile.html', context)
+
+@login_required
+def my_books_view(request):
+    personal_inventory = ActualBook.objects.filter(owner=request.user).order_by('status','abstract_book__title')
+    book_list = []
+    for book in personal_inventory:
+        if book.status == book.OUT_FOR_RENT:
+            current_transaction = Transaction.objects.filter(Q(book=book)).order_by('-modified_timestamp')[0]
+            book_list.append((book,current_transaction))
+        else:
+            book_list.append((book,None))
+    
+    context = {
+        'book_list':book_list,
+    }
+    return render(request, 'bookHandler/my-book-list.html', context)
+
+@login_required
+def my_requests_view(request):
+    transaction_list = Transaction.objects.filter(Q(borrower=request.user)&Q(transaction_state__in=Transaction.ACTIVE_TRANSACTION)).order_by('transaction_state', '-modified_timestamp')
+    return render(request, 'bookHandler/my-requests.html', {'transaction_list':transaction_list})
 
 def register(request):
     if request.method == 'POST':
@@ -134,7 +151,7 @@ def new_borrowing_request(request, book_id):
                     return_date=timezone.now() + timedelta(days=37) )
                 new_request.transaction_state = Transaction.INITIAL_REQUEST
                 new_request.save()
-                actualbook.status = ActualBook.UNAVAILABLE # We will put it unavailable until the owner denies the request or the book is given back
+                actualbook.status = ActualBook.OUT_FOR_RENT # We will put it unavailable until the owner denies the request or the book is given back
                 actualbook.save()
                 messages.success(request, 'Book successfully borrowed!')
             else:
@@ -176,7 +193,7 @@ def reply_request(request, transaction_id):
 
 @login_required
 def edit_transaction(request, transaction_id):
-    # TO DO-> Initial checks if the current user is not the transaction book owner.
+    # Initial check if the current user is not the transaction book owner.
     book_transaction = get_object_or_404(Transaction, id=transaction_id)
     if request.user != book_transaction.lender:
         messages.error(request,"You cannot edit a transaction on books you don't own")
@@ -190,6 +207,7 @@ def edit_transaction(request, transaction_id):
             book_transaction.return_date = form.cleaned_data['return_date']
             book_transaction.transaction_state = form.cleaned_data['transaction_state']
             book_transaction.save()
+            book_transaction.update_actual_book_status()
             # Looking at the comment
             if form.cleaned_data['new_message'] != '':
                 new_message = Message(author=request.user,destination=book_transaction.borrower, transaction=book_transaction,text=form.cleaned_data['new_message'])
@@ -200,6 +218,7 @@ def edit_transaction(request, transaction_id):
     else:
         book_transaction = get_object_or_404(Transaction, id=transaction_id)
         form = EditTransactionForm(instance=book_transaction)
+        # TO DO -> Restricing the possibilities of the new "Transaction Status" according to the current transaction status
 
         return render(request, 'bookHandler/edit-transaction.html', {'transaction': book_transaction, 'transaction_form':form })
 

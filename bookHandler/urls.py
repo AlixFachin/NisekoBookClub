@@ -14,4 +14,6 @@ urlpatterns=[
     path('reply_transaction/<uuid:transaction_id>',views.reply_request, name='reply_transaction'),
     path('edit_transaction/<uuid:transaction_id>', views.edit_transaction, name='edit_transaction'),
     path('view_conversation/<uuid:transaction_id>', views.view_conversation, name='view_conversation'),
+    path('my_books', views.my_books_view, name='user_books'),
+    path('my_requests', views.my_requests_view, name='user_requests'),
 ]

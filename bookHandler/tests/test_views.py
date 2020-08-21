@@ -1,6 +1,8 @@
 from django.test import TestCase
 
-from bookHandler.models import AbstractBook, ActualBook, Author, Genre, User
+from bookHandler.models import AbstractBook, ActualBook, Author, Genre, User, Transaction
+from django.utils import timezone
+from datetime import datetime, timedelta
 
 class test_model_methods(TestCase):
     @classmethod
@@ -61,6 +63,69 @@ class test_model_methods(TestCase):
         self.assertEquals(new_book2.author.all()[0].last_name,'Lastname1')
         self.assertEquals(new_book2.author.all()[1].first_name,'Firstname2')
         self.assertEquals(new_book2.author.all()[1].last_name,'Lastname2')
+
+class test_transactions(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        user1 = User.objects.create_user(username='testuser1', password='gluglu1')
+        user2 = User.objects.create_user(username='testuser2', password='gluglu2')
+        abs_book = AbstractBook.get_or_create(title='Memoirs of a Geisha', author_list_string=['Lastname Firstname'])
+        abs_book2 = AbstractBook.get_or_create(title='Special Relativity', author_list_string=['Albert Einstein'])
+        real_book = ActualBook.objects.create(abstract_book=abs_book, owner=user1)
+        real_book.save()
+        real_book = ActualBook.objects.create(abstract_book=abs_book, owner=user2)
+        real_book.save()
+        actual_2 = ActualBook.objects.create(abstract_book=abs_book2, owner=user1)
+        real_book.save()
+        # Creating transactions for the books
+        old_transaction = Transaction(book=actual_2, lender=user1, borrower=user2, transaction_state=Transaction.BOOK_RETURNED,lend_date=timezone.now() + timedelta(days=-60), 
+                    return_date=timezone.now() + timedelta(days=-30),modified_timestamp=timezone.now()+timedelta(days=-30) )
+        old_transaction.save()
+        new_transaction = Transaction(book=actual_2, lender=user1, borrower=user2, transaction_state=Transaction.INITIAL_REQUEST)
+        actual_2.status = ActualBook.OUT_FOR_RENT
+        actual_2.save()
+        new_transaction.save()
+
+    def test_my_books_view(self):
+        login1 = self.client.login(username='testuser1', password='gluglu1')
+        response = self.client.get('/bookhandler/my_books')
+        self.assertEquals(response.status_code, 200)
+        rep_book_list = response.context['book_list']
+        self.assertEquals(len(rep_book_list),2)
+        (firstBook, firstTrans) = rep_book_list[0]
+        (secondBook, secondTrans) = rep_book_list[1]
+        self.assertEquals(firstBook.abstract_book.title,'Memoirs of a Geisha')
+        self.assertEquals(secondBook.abstract_book.title,'Special Relativity')
+        self.assertIsNone(firstTrans)
+        self.assertIsNotNone(secondTrans)
+        self.assertEquals(secondTrans.book, secondBook)
+        self.assertEquals(secondTrans.transaction_state, Transaction.INITIAL_REQUEST)
+        self.client.logout()
+        response = self.client.get('/bookhandler/my_books')
+        self.assertEquals(response.status_code, 302)
+
+    def test_my_requests_view(self):
+        # Not logged in
+        self.client.logout()
+        response = self.client.get('/bookhandler/my_requests')
+        self.assertEquals(response.status_code, 302)
+        # Logged in but no transaction
+        self.client.login(username='testuser1', password='gluglu1')
+        response = self.client.get('/bookhandler/my_requests')
+        self.assertEquals(response.status_code, 200)
+        transaction_list = response.context['transaction_list']
+        self.assertEquals(len(transaction_list),0)
+        # Logged in -> check that only ACTIVE transactions appear
+        self.client.logout()
+        self.client.login(username='testuser2', password='gluglu2')
+        response = self.client.get('/bookhandler/my_requests')
+        self.assertEquals(response.status_code, 200)
+        transaction_list = response.context['transaction_list']
+        self.assertEquals(len(transaction_list),1)
+        self.assertEquals(transaction_list[0].book.abstract_book.title,'Special Relativity')
+        self.assertEquals(transaction_list[0].lender.username,'testuser1')
+        self.assertEquals(transaction_list[0].borrower.username,'testuser2')
+
 
 
 

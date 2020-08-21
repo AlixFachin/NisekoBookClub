@@ -131,7 +131,7 @@ class ActualBook(models.Model):
     BOOK_STATUS = (
         (AVAILABLE, 'Available'),
         (UNAVAILABLE, 'Unavailable'), # Not borrowed but lost, damaged or owner wants to remove from the market
-        (OUT_FOR_RENT, 'Out for lent'),
+        (OUT_FOR_RENT, 'Borrowed'),
     )
     status = models.CharField(max_length=1, choices=BOOK_STATUS, default='a')
 
@@ -192,6 +192,7 @@ class Transaction(models.Model):
     lender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='lend_requests' )
     borrower = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='borrow_requests')
     created_date = models.DateField(default=timezone.now, editable=False)
+    modified_timestamp = models.DateTimeField(default=timezone.now, editable=False)
     lend_date = models.DateField(default=timezone.now)
     return_date = models.DateField(default=timezone.now)
 
@@ -202,6 +203,7 @@ class Transaction(models.Model):
     BOOK_RETURNED = 'r'
     EXTENSION = 'e'
     BOOK_LOST = 'z'
+    ACTIVE_TRANSACTION = [INITIAL_REQUEST, APPROVED_REQUEST, BOOK_LENT, EXTENSION]
 
     TRANSACTION_STATUS = (
         (INITIAL_REQUEST, 'Initial Request'),
@@ -224,11 +226,25 @@ class Transaction(models.Model):
         """ Updates the created date value """
         if not self.id:
             self.created_date = timezone.now()
+        self.modified_timestamp = timezone.now()
         return super(Transaction,self).save(args,kwargs)
     
     def is_active(self):
-        return self.transaction_state in [self.INITIAL_REQUEST, self.APPROVED_REQUEST,self.BOOK_LENT, self.EXTENSION]
+        return self.transaction_state in self.ACTIVE_TRANSACTION
     
     def is_terminated(self):
-        return self.transaction_state in [self.REJECTED_REQUEST, self.BOOK_RETURNED, self.BOOK_LOST]
+        return not self.transaction_state in self.ACTIVE_TRANSACTION
+    
+    def update_actual_book_status(self):
+        """ This method is expected to be called after transaction status is updated.
+            It will update the Actual Book status according to the transaction state in order to make sure that both are consistent
+        """
+        if self.transaction_state in [Transaction.INITIAL_REQUEST, Transaction.APPROVED_REQUEST, Transaction.BOOK_LENT, Transaction.EXTENSION]:
+            self.book.status = ActualBook.OUT_FOR_RENT
+        elif self.transaction_state in [Transaction.BOOK_LOST]:
+            self.book.status = ActualBook.UNAVAILABLE
+        else:
+            self.book.status = ActualBook.AVAILABLE
+        self.book.save()
+
     

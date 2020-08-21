@@ -1,0 +1,26 @@
+{% extends 'bookHandler/base.html' %}
+
+{% block title %} Niseko Book Club : My Requests {% endblock %}
+
+{% block body %}
+
+<div class="row justify-content-center mb-4">
+    <div class="col-10">
+        <h5>Book Borrowed request and status </h5>
+            <p><small>List of books that you would like to read and requested</small></p>
+
+            {% for transaction in transaction_list %}
+                <div class="row border rounded secondary-border mb-1 p-2">
+                    <div class="col-sm-auto"> <h5>{{ transaction.book.abstract_book.title }}</h5></div>
+                    <div class="col-sm-4 col-md-auto"> <em> ({% for author in transaction.book.abstract_book.author.all %} {{ author.last_name }} {{ author.first_name }} {% if not forloop.last %} , {% endif %}  {% endfor %}) </em> </div>
+                    <div class="col-sm-4 col-md-auto"> owner: {{transaction.lender }} - until {{ transaction.return_date }} </div>
+                    <div class="col"> <span class="badge badge-success">{{transaction.get_transaction_state_display}} </span> </div>
+                    <div class="col"> <a href="{% url 'bookHandler:view_conversation' transaction.id %}" class="btn btn-primary"> View Conversation </a>  </div>
+
+                </div>
+            {% endfor %}
+
+    </div>
+</div>
+
+{% endblock %}
