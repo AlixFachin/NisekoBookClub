@@ -42,9 +42,11 @@ class EditTransactionForm(forms.ModelForm):
     class Meta:
         model = Transaction
         fields = ['lend_date', 'return_date', 'transaction_state', 'new_message']
-    
+        
     def __init__(self, *args, **kwargs):
         super(EditTransactionForm,self).__init__(*args, **kwargs)
+        self.fields['lend_date'].widget = forms.DateInput(attrs={'class':'form-control datepicker'},format='%m/%d/%Y')
+        self.fields['return_date'].widget = forms.DateInput(attrs={'class':'form-control datepicker'},format='%m/%d/%Y')
         for field in iter(self.fields):
             if self.fields[field].widget.__class__.__name__ in ('AdminTextInputWidget' , 'Textarea' ,'TextInput', 'NumberInput' , 'AdminURLFieldWidget', 'Select'):
                 self.fields[field].widget.attrs.update({ 'class': 'form-control' })
