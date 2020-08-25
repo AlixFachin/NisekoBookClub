@@ -26,24 +26,21 @@
         <div class="row justify-content-center">
             <div class="col-8 md-auto">
                 <h5>Book lent request / history </h5>
-                <table class="table table-striped w-70">
-                    <thead class="thead-dark">
-                        <tr> 
-                            <th scope="col"> Book Title </th> <th scope="col"> Status  </th> <th scope="col"> Owner </th> <th scope="col"> Borrower  </th> <th scope="col"> Lent Date  </th><th scope="col"> Return Date  </th>
-                        </tr>        
-                    </thead>
-                    {% for lent_transaction in transaction_history  %}
-                        <tr>
-                            <td class="align-middle"> {{ lent_transaction.book.abstract_book.title | truncatewords:10 }} </td>
-                            <td class="align-middle"> {{ lent_transaction.get_transaction_state_display }} </td>
-                            <td class="align-middle"> {{ lent_transaction.lender  }} </td>
-                            <td class="align-middle"> {{ lent_transaction.borrower  }} </td>
-                            <td class="align-middle"> {{ lent_transaction.lend_date }} </td>
-                            <td class="align-middle"> {{ lent_transaction.return_date  }} </td>
-                            <td class="align-middle"> {% if lent_transaction.is_active %} Active {% else %} Not active {% endif %} </td>
-                        </tr>
-                    {% endfor %}
-                </table>
+
+                {% for lent_transaction in transaction_history %}
+                    <div class="row border rounded border-secondary mb-1">
+                        <div class="col-2"> <h5> {{ lent_transaction.book.abstract_book.title | truncatewords:10 }} </h5></div>
+                        <div class="col"> Status: {{ lent_transaction.get_transaction_state_display }} </div>
+                        <div class="col"> borrowed from: {{ lent_transaction.lend_date }} </div>
+                        <div class="col"> to: {{ lent_transaction.return_date  }} ( {{ lent_transaction.return_date | timesince  }}) </div>
+                        {% if lent_transaction.lender == user %}
+                            <div class="col"> Lent to {{ lent_transaction.borrower  }} </div>
+                        {% else %}
+                            <div class="col"> Borrowed from {{ lent_transaction.lender  }} </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+
             </div>
         </div>
         

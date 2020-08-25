@@ -1,9 +1,19 @@
 {% extends 'bookHandler/base.html' %}
 
+{% load static %}
+
 {% block body %}
 
-<div class="container mb-4 w-80">
-    <h1>Welcome to Niseko Book Club!</h1>
+<div class="jumbotron jumbotron-fluid">
+    <div class="container">
+        <h1 class="display-4">Welcome to Niseko Book Club!</h1>
+        <figure class="figure">
+            <img src="{% static 'old-library-thin.jpg' %}" class="figure-img img-fluid rounded">
+            <figcaption class="figure=caption text-right">
+                Photo by <a href="https://unsplash.com/@annahunko?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText">Anna Hunko</a> on <a href="https://unsplash.com/s/photos/library?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText">Unsplash</a>
+            </figcaption>
+        </figure>
+    </div>
 </div>
 <div class="row bg-light justify-content-center"> Current List of Books</div>
 
